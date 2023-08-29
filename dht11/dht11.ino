@@ -1,27 +1,43 @@
-#include <dht.h>              //on inclut la bibliothèque pour le capteur DHT11
-#include <LiquidCrystal.h>    //on inclut la bibliothèque pour l’écran LCD
 
-LiquidCrystal lcd(12, 11, 5, 4, 3, 2);  //on crée l’objet LCD et on définit les Pins utilisés
-dht DHT;                  // on crée l’objet du capteur DHT11
+//#include <DallasTemperature.h>
 
-#define DHT11_PIN 13      //on définit le Pin utilisé pour les données du DHT11
-//int DHT11_PIN = 13;
-void setup(){
-  lcd.begin(16, 2);     //on initialise la communication avec l’écran LCD
- }
-void loop()
-{ //byte temperature = 0;
- int chk = DHT.read11(DHT11_PIN); //on lit les données du capteur DHT
-  lcd.setCursor(0,0);            //on place le curseur de l'écran LCD au début de la 1ère ligne
-  lcd.print("Temp: ");          //on écrit le mot "Temp: " à l'emplacement du curseur
-  lcd.print(DHT.temperature,1); //on écrit la température lue par le capteur, avec 1
-                                //chiffre derrière la virgule
-  lcd.print((char)223);      //on ajoute le symbole ° après la valeur de la température
-  lcd.print("C");            //on ajoute la lettre C pour degré Celsius
-  lcd.setCursor(0,1);        //on déplace le curseur de l'écran LCD au début de la 2èmeligne
-  lcd.print("Humidity: ");    //on écrit le mot "Hum. rel: " à l'emplacement du curseur
-  lcd.print(DHT.humidity,1);   //on écrit l'humidité relative lue par le capteur, avec 1
-                             //chiffre derrière la virgule
-  lcd.print("%");           //on ajoute le symbole "%" après la valeur de l'humidité
-  delay(1000);           //on attend une seconde avant de procéder à la lecture suivante
+//#include <DHT.h>
+#include <LiquidCrystal.h>
+const int rs = 12, en = 11, d4 = 5, d5 = 4, d6 = 3, d7 = 2;
+LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
+// ------------------------------------------------------------------
+// for DHT11, ( Capteur Temperature + Humidité )
+//      VCC: 5V or 3V
+//      GND: GND
+//      DATA: pinDHT11
+#include <SimpleDHT.h>
+int pinDHT11 = 13;
+SimpleDHT11 dht11;
+int err = SimpleDHTErrSuccess;
+// =======================================================================
+void setup() {
+  Serial.begin(9600);
+  // Initialisation de l'écran LCD
+  lcd.begin(16, 2); // 16 colonnes et 2 lignes
+}
+// =======================================================================+
+void loop() {
+  // Affichage sur le terminal
+  Serial.println("=================================");
+  // Lecture de la température et de l'humidité ------------------
+  byte temperature = 0;
+  byte humidity = 0;
+  if ((err = dht11.read(pinDHT11, &temperature, &humidity, NULL)) != SimpleDHTErrSuccess) {
+    // Si on n'arrive pas à lire les données.
+    Serial.print("Read DHT11 failed, err="); Serial.println(err); delay(1000);
+    return;
+  }
+  Serial.print("Température : "); Serial.print((int)temperature); Serial.println(" °C");
+  Serial.print("Humidité : ");    Serial.print((int)humidity); Serial.println(" %");
+  // Ecran LCD --------------------------------------------------
+  lcd.setCursor(0, 0);
+  lcd.print("Temperature: "); lcd.print((int)temperature); lcd.print("C");
+  lcd.setCursor(0, 1);
+  lcd.print("Humidite   : ");    lcd.print((int)humidity);    lcd.print("%");
+  delay(2000);
 }
